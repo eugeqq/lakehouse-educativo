@@ -1,0 +1,32 @@
+resources:
+  jobs:
+    pipeline_edu_lakehouse:
+      name: pipeline_edu_lakehouse
+      schedule:
+        quartz_cron_expression: 53 0 8 ? * Mon
+        timezone_id: America/Buenos_Aires
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: bronze_ingesta
+          notebook_task:
+            notebook_path: /Workspace/Users/quadromariaeugenia@uca.edu.ar/01_bronze_ingesta
+            source: WORKSPACE
+        - task_key: silver_limpieza
+          depends_on:
+            - task_key: bronze_ingesta
+          notebook_task:
+            notebook_path: /Workspace/Users/quadromariaeugenia@uca.edu.ar/02_silver_limpieza
+            source: WORKSPACE
+        - task_key: gold_indicadores
+          depends_on:
+            - task_key: silver_limpieza
+          notebook_task:
+            notebook_path: /Workspace/Users/quadromariaeugenia@uca.edu.ar/03_gold_indicadores
+            source: WORKSPACE
+      git_source:
+        git_url: https://github.com/eugeqq/lakehouse-educativo
+        git_provider: gitHub
+        git_branch: main
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
