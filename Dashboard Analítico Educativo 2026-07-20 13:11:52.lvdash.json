@@ -1,0 +1,517 @@
+{
+  "datasets": [
+    {
+      "name": "d0c5b080",
+      "displayName": "kpis_calidad",
+      "queryLines": [
+        "SELECT tabla, dimension, valor, umbral_optimo, estado \r\n",
+        "FROM main.edu_lakehouse.gold_kpis_calidad"
+      ]
+    },
+    {
+      "name": "fb4aac4a",
+      "displayName": "resumen_alumnos_riesgo",
+      "queryLines": [
+        "SELECT nombre, carrera, promedio_nota, pct_asistencia, riesgo,\r\n",
+        "       CASE \r\n",
+        "         WHEN nombre = 'Ana Ruiz' THEN 'Caso Urgente: Promedio bajo y ausencia total'\r\n",
+        "         WHEN pct_asistencia < 60 THEN 'Asistencia por debajo del umbral mínimo'\r\n",
+        "         WHEN riesgo = 'SIN NOTA' THEN 'Nota pendiente de carga o Ausente'\r\n",
+        "         ELSE 'Regularizado'\r\n",
+        "       END as accion_pedagogica\r\n",
+        "FROM main.edu_lakehouse.gold_riesgo_alumnos"
+      ]
+    },
+    {
+      "name": "893de5ff",
+      "displayName": "rendimiento_materias",
+      "queryLines": [
+        "SELECT nombre, promedio_nota, cantidad_examenes,\r\n",
+        "       CASE WHEN promedio_nota < 6 THEN 'Requiere Atención Pedagógica' ELSE 'Desempeño Normal' END as estatus_materia\r\n",
+        "FROM main.edu_lakehouse.gold_promedio_materia"
+      ]
+    },
+    {
+      "name": "a018a977",
+      "displayName": "auditoria_cuarentena",
+      "queryLines": [
+        "SELECT 'Alumnos' as entidad, count(*) as rechazados FROM main.edu_quarantine.cuarentena_alumnos UNION ALL\r\n",
+        "SELECT 'Notas' as entidad, count(*) as rechazados FROM main.edu_quarantine.cuarentena_notas UNION ALL\r\n",
+        "SELECT 'Asistencia' as entidad, count(*) as rechazados FROM main.edu_quarantine.cuarentena_asistencia UNION ALL\r\n",
+        "SELECT 'Integridad Referencial' as entidad, count(*) as rechazados FROM main.edu_quarantine.cuarentena_integridad_referencial"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "a60961e5",
+      "displayName": "dashboard",
+      "layout": [
+        {
+          "widget": {
+            "name": "header_seccion_1",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## CONTROL DE MANDOS E INDICADORES CLAVE"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "filtro_global_carrera",
+            "queries": [
+              {
+                "name": "dashboards/01f18455b7e110b6859c070da3226fd0/datasets/01f18455e25a1bd0900454bbabc90dc6_carrera",
+                "query": {
+                  "datasetName": "fb4aac4a",
+                  "fields": [
+                    {
+                      "name": "carrera",
+                      "expression": "`carrera`"
+                    },
+                    {
+                      "name": "carrera_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "scale": {
+                "type": "categorical",
+                "sort": {
+                  "by": "natural-order"
+                }
+              },
+              "frame": {
+                "title": "Filtro por Carrera",
+                "showTitle": true
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "carrera",
+                    "queryName": "dashboards/01f18455b7e110b6859c070da3226fd0/datasets/01f18455e25a1bd0900454bbabc90dc6_carrera"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 12,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "counter_alumnos_riesgo",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fb4aac4a",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`riesgo` IN ('EN RIESGO')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Alumnos en Riesgo Académico",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(*)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "counter_materias_alerta",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "893de5ff",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`promedio_nota` < 6"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Cátedras en Alerta",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(*)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 4,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "header_seccion_2",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## ANÁLISIS PEDAGÓGICO Y ALERTAS TEMPRANAS"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_rendimiento_materias",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "893de5ff",
+                  "fields": [
+                    {
+                      "name": "estatus_materia",
+                      "expression": "`estatus_materia`"
+                    },
+                    {
+                      "name": "avg(promedio_nota)",
+                      "expression": "AVG(`promedio_nota`)"
+                    },
+                    {
+                      "name": "nombre",
+                      "expression": "`nombre`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Rendimiento Promedio por Asignatura",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "avg(promedio_nota)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "nombre",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "color": {
+                  "fieldName": "estatus_materia",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "table_alumnos_criticos",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fb4aac4a",
+                  "fields": [
+                    {
+                      "name": "nombre",
+                      "expression": "`nombre`"
+                    },
+                    {
+                      "name": "promedio_nota",
+                      "expression": "`promedio_nota`"
+                    },
+                    {
+                      "name": "pct_asistencia",
+                      "expression": "`pct_asistencia`"
+                    },
+                    {
+                      "name": "accion_pedagogica",
+                      "expression": "`accion_pedagogica`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`riesgo` IN ('EN RIESGO', 'SIN NOTA')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Plan de Acción para Alumnos Críticos",
+                "showTitle": true
+              },
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "nombre"
+                  },
+                  {
+                    "fieldName": "promedio_nota"
+                  },
+                  {
+                    "fieldName": "pct_asistencia"
+                  },
+                  {
+                    "fieldName": "accion_pedagogica"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 9,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "header_seccion_3",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## AUDITORÍA Y GOBIERNO DE DATOS"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table_kpis_calidad",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "d0c5b080",
+                  "fields": [
+                    {
+                      "name": "tabla",
+                      "expression": "`tabla`"
+                    },
+                    {
+                      "name": "dimension",
+                      "expression": "`dimension`"
+                    },
+                    {
+                      "name": "valor",
+                      "expression": "`valor`"
+                    },
+                    {
+                      "name": "umbral_optimo",
+                      "expression": "`umbral_optimo`"
+                    },
+                    {
+                      "name": "estado",
+                      "expression": "`estado`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Health Check: Cumplimiento del Estándar Técnico de Calidad",
+                "showTitle": true
+              },
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "tabla"
+                  },
+                  {
+                    "fieldName": "dimension"
+                  },
+                  {
+                    "fieldName": "valor"
+                  },
+                  {
+                    "fieldName": "umbral_optimo"
+                  },
+                  {
+                    "fieldName": "estado"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 18,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_cuarentena",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a018a977",
+                  "fields": [
+                    {
+                      "name": "entidad",
+                      "expression": "`entidad`"
+                    },
+                    {
+                      "name": "sum(rechazados)",
+                      "expression": "SUM(`rechazados`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Registros Desviados a Cuarentena",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "entidad",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(rechazados)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 18,
+            "width": 6,
+            "height": 8
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
