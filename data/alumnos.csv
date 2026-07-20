@@ -17,3 +17,65 @@ alumno_id,nombre,carrera,anio_ingreso,estado
 16,Roberto Paz,Sistemas,2019,baja
 17,Fernanda Leal,Administración,2020,baja
 18,ROBERTO PAZ,Sistemas,2019,baja
+19,Julieta Navarro,Sistemas,2023,activo
+20,Emiliano Soto,Sistemas,2023,activo
+21,Agustina Romero,Sistemas,2023,activo
+22,Nicolas Fuentes,Sistemas,2022,activo
+23,Bruno Cabrera,Sistemas,2022,activo
+24,Martina Quiroga,Sistemas,2024,activo
+25,Santiago Roldan,Sistemas,2024,activo
+26,Luciana Peralta,Sistemas,2024,activo
+27,Kevin Alvarez,Sistemas,2021,activo
+28,Milagros Medina,Sistemas,2021,activo
+29,Joaquin Arias,Sistemas,2020,activo
+30,Paula Benitez,Sistemas,2020,activo
+31,Franco Castillo,Ingeniería Industrial,2022,activo
+32,Melina Vega,Ingeniería Industrial,2022,activo
+33,Ignacio Herrera,Ingeniería Industrial,2023,activo
+34,Candela Lopez,Ingeniería Industrial,2023,activo
+35,Federico Aguirre,Ingeniería Industrial,2024,activo
+36,Rocio Acuña,Ingeniería Industrial,2024,activo
+37,Juan Bautista,Ingeniería Industrial,2021,activo
+38,Abril Moreno,Ingeniería Industrial,2020,activo
+39,Facundo Luna,Ingeniería Industrial,2020,activo
+40,Victoria Sosa,Ingeniería Industrial,2019,baja
+41,Martin Pereyra,Administración,2023,activo
+42,Carolina Suarez,Administración,2023,activo
+43,Ezequiel Dominguez,Administración,2022,activo
+44,Lucia Rivas,Administración,2022,activo
+45,Tomas Mendez,Administración,2024,activo
+46,Delfina Castro,Administración,2024,activo
+47,Nahuel Gimenez,Administración,2021,activo
+48,Brenda Molina,Administración,2021,activo
+49,Alan Ferraro,Administración,2020,baja
+50,Juliana Nuñez,Administración,2020,activo
+51,Mateo Diaz,Sistemas,2019,activo
+52,CAROLINA SUAREZ,Administración,2023,activo
+53,Pedro Salinas,Sistemas,,activo
+54,Ana Ruiz,Administración,2022,activo
+55,Ignacio Herrera,Ingeniería Industrial,2023,activo
+56,Sabrina Vidal,Sistemas,2025,activo
+57,Thiago Ramos,Sistemas,2025,activo
+58,Valentino Costa,Ingeniería Industrial,2025,activo
+59,Josefina Ponce,Administración,2025,activo
+60,Lautaro Varela,Sistemas,2025,activo
+61,Maximiliano Arias,Sistemas,2024,activo
+62,Camila Nuñez,Sistemas,2024,activo
+63,Bruno Silva,Sistemas,2023,activo
+64,Valeria Soto,Sistemas,2023,activo
+65,Martin Ruiz,Sistemas,2022,activo
+66,Luciana Gomez,Sistemas,2022,activo
+67,Federico Perez,Ingeniería Industrial,2024,activo
+68,Agustina Leiva,Ingeniería Industrial,2024,activo
+69,Nicolas Herrera,Ingeniería Industrial,2023,activo
+70,Victoria Ramos,Ingeniería Industrial,2023,activo
+71,Julian Acosta,Administración,2024,activo
+72,Celeste Mendez,Administración,2024,activo
+73,Matias Vega,Administración,2023,activo
+74,Paula Suarez,Administración,2023,activo
+75,Juan Cruz,Sistemas,2022,activo
+76,JUAN CRUZ,Sistemas,2022,activo
+77,Lucia Benitez,,2024,activo
+78,Gabriel Torres,Ingeniería Industrial,,activo
+79,Valentina Paz,Administración,2021,baja
+80,Facundo Romero,Sistemas,2020,activo
