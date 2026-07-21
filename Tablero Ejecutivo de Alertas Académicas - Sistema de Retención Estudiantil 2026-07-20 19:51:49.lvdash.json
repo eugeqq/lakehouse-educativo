@@ -100,9 +100,9 @@
         "  pct_asistencia,\n",
         "  riesgo,\n",
         "  CASE\n",
-        "    WHEN nombre = 'Ana Ruiz' THEN 'Caso Urgente: Promedio bajo y ausencia total'\n",
+        "    WHEN pct_asistencia < 60 AND promedio_nota < 4 THEN 'Caso Urgente: Promedio bajo y ausencia total'\n",
         "    WHEN pct_asistencia < 60 THEN 'Asistencia por debajo del umbral mínimo'\n",
-        "    WHEN riesgo = 'SIN NOTA' THEN 'Nota pendiente de carga o Ausente'\n",
+        "    WHEN promedio_nota < 4 THEN 'Promedio por debajo del umbral mínimo'\n",
         "    ELSE 'Regularizado'\n",
         "  END as accion_pedagogica,\n",
         "  CASE\n",
@@ -320,50 +320,7 @@
           "position": {
             "x": 4,
             "y": 2,
-            "width": 2,
-            "height": 3
-          }
-        },
-        {
-          "widget": {
-            "name": "kpi_sin_nota",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "resumen_ejecutivo",
-                  "fields": [
-                    {
-                      "name": "alumnos_sin_nota",
-                      "expression": "`alumnos_sin_nota`"
-                    }
-                  ],
-                  "disaggregated": true
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "frame": {
-                "title": "Alumnos SIN NOTA",
-                "showTitle": true,
-                "description": "Evaluación pendiente"
-              },
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "alumnos_sin_nota"
-                }
-              },
-              "data": {
-                "queryName": "main_query"
-              }
-            }
-          },
-          "position": {
-            "x": 6,
-            "y": 2,
-            "width": 2,
+            "width": 3,
             "height": 3
           }
         },
@@ -404,9 +361,9 @@
             }
           },
           "position": {
-            "x": 8,
+            "x": 7,
             "y": 2,
-            "width": 2,
+            "width": 3,
             "height": 3
           }
         },
@@ -578,20 +535,12 @@
                   "datasetName": "riesgo_por_carrera",
                   "fields": [
                     {
-                      "name": "carrera",
-                      "expression": "`carrera`"
-                    },
-                    {
                       "name": "total_alumnos",
                       "expression": "`total_alumnos`"
                     },
                     {
-                      "name": "alumnos_riesgo",
-                      "expression": "`alumnos_riesgo`"
-                    },
-                    {
-                      "name": "pct_riesgo",
-                      "expression": "`pct_riesgo`"
+                      "name": "carrera",
+                      "expression": "`carrera`"
                     }
                   ],
                   "disaggregated": true
@@ -599,28 +548,30 @@
               }
             ],
             "spec": {
-              "version": 2,
+              "version": 3,
               "frame": {
-                "title": "Ranking de Carreras por Riesgo",
+                "title": "Distribución de Carreras",
                 "showTitle": true,
-                "description": "Concentración de alumnos en riesgo por carrera - Priorizar intervenciones"
+                "description": "Concentración de alumnos en riesgo por carrera - Priorizar intervenciones",
+                "headerAlignment": "left"
               },
-              "widgetType": "table",
+              "widgetType": "pie",
               "encodings": {
-                "columns": [
-                  {
-                    "fieldName": "carrera"
-                  },
-                  {
-                    "fieldName": "total_alumnos"
-                  },
-                  {
-                    "fieldName": "alumnos_riesgo"
-                  },
-                  {
-                    "fieldName": "pct_riesgo"
+                "angle": {
+                  "fieldName": "total_alumnos",
+                  "scale": {
+                    "type": "quantitative"
                   }
-                ]
+                },
+                "color": {
+                  "fieldName": "carrera",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
               },
               "data": {
                 "queryName": "main_query"
@@ -676,6 +627,9 @@
                   "scale": {
                     "type": "categorical"
                   }
+                },
+                "label": {
+                  "show": true
                 }
               },
               "data": {
@@ -706,49 +660,6 @@
             "y": 21,
             "width": 12,
             "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "kpi_score_calidad",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "calidad_global",
-                  "fields": [
-                    {
-                      "name": "score_calidad",
-                      "expression": "`score_calidad`"
-                    }
-                  ],
-                  "disaggregated": true
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "frame": {
-                "title": "Score de Calidad",
-                "showTitle": true,
-                "description": "0-30 CRÍTICO | 30-70 ALERTA | 70-100 ÓPTIMO"
-              },
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "score_calidad"
-                }
-              },
-              "data": {
-                "queryName": "main_query"
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 23,
-            "width": 3,
-            "height": 4
           }
         },
         {
@@ -788,9 +699,9 @@
             }
           },
           "position": {
-            "x": 3,
+            "x": 0,
             "y": 23,
-            "width": 3,
+            "width": 4,
             "height": 4
           }
         },
@@ -847,9 +758,9 @@
             }
           },
           "position": {
-            "x": 6,
+            "x": 4,
             "y": 23,
-            "width": 6,
+            "width": 8,
             "height": 8
           }
         }
