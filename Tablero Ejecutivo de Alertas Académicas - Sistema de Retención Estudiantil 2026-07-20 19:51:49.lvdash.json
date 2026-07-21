@@ -1,0 +1,886 @@
+{
+  "datasets": [
+    {
+      "name": "893de5ff",
+      "displayName": "rendimiento_materias",
+      "queryLines": [
+        "SELECT\n",
+        "  nombre,\n",
+        "  promedio_nota,\n",
+        "  cantidad_examenes,\n",
+        "  CASE\n",
+        "    WHEN promedio_nota < 6 THEN 'Requiere Atención Pedagógica'\n",
+        "    ELSE 'Desempeño Normal'\n",
+        "  END as estatus_materia\n",
+        "FROM\n",
+        "  main.edu_lakehouse.gold_promedio_materia"
+      ]
+    },
+    {
+      "name": "d0c5b080",
+      "displayName": "kpis_calidad",
+      "queryLines": [
+        "SELECT\n",
+        "  tabla,\n",
+        "  dimension,\n",
+        "  valor,\n",
+        "  umbral_optimo,\n",
+        "  estado\n",
+        "FROM\n",
+        "  main.edu_lakehouse.gold_kpis_calidad"
+      ]
+    },
+    {
+      "name": "resumen_ejecutivo",
+      "displayName": "resumen_ejecutivo",
+      "queryLines": [
+        "SELECT\n",
+        "  COUNT(*) total_alumnos,\n",
+        "  SUM(\n",
+        "    CASE\n",
+        "      WHEN riesgo = 'EN RIESGO' THEN 1\n",
+        "      ELSE 0\n",
+        "    END\n",
+        "  ) alumnos_riesgo,\n",
+        "  ROUND(\n",
+        "    SUM(\n",
+        "      CASE\n",
+        "        WHEN riesgo = 'EN RIESGO' THEN 1\n",
+        "        ELSE 0\n",
+        "      END\n",
+        "    )\n",
+        "      * 100.0\n",
+        "      / COUNT(*),\n",
+        "    1\n",
+        "  ) pct_riesgo,\n",
+        "  SUM(\n",
+        "    CASE\n",
+        "      WHEN riesgo = 'SIN NOTA' THEN 1\n",
+        "      ELSE 0\n",
+        "    END\n",
+        "  ) alumnos_sin_nota,\n",
+        "  ROUND(AVG(promedio_nota), 2) promedio_general,\n",
+        "  ROUND(AVG(pct_asistencia), 1) asistencia_promedio\n",
+        "FROM\n",
+        "  main.edu_lakehouse.gold_riesgo_alumnos"
+      ]
+    },
+    {
+      "name": "calidad_global",
+      "displayName": "calidad_global_datos",
+      "queryLines": [
+        "SELECT\n",
+        "  ROUND(\n",
+        "    AVG(\n",
+        "      CASE\n",
+        "        WHEN estado = 'OPTIMO' THEN 100\n",
+        "        WHEN estado = 'ALERTA' THEN 50\n",
+        "        ELSE 0\n",
+        "      END\n",
+        "    ),\n",
+        "    1\n",
+        "  ) as score_calidad,\n",
+        "  COUNT(\n",
+        "    CASE\n",
+        "      WHEN estado = 'CRITICO' THEN 1\n",
+        "    END\n",
+        "  ) as total_criticos\n",
+        "FROM\n",
+        "  main.edu_lakehouse.gold_kpis_calidad"
+      ]
+    },
+    {
+      "name": "alumnos_priorizados",
+      "displayName": "alumnos_alta_prioridad",
+      "queryLines": [
+        "SELECT\n",
+        "  nombre,\n",
+        "  carrera,\n",
+        "  promedio_nota,\n",
+        "  pct_asistencia,\n",
+        "  riesgo,\n",
+        "  CASE\n",
+        "    WHEN nombre = 'Ana Ruiz' THEN 'Caso Urgente: Promedio bajo y ausencia total'\n",
+        "    WHEN pct_asistencia < 60 THEN 'Asistencia por debajo del umbral mínimo'\n",
+        "    WHEN riesgo = 'SIN NOTA' THEN 'Nota pendiente de carga o Ausente'\n",
+        "    ELSE 'Regularizado'\n",
+        "  END as accion_pedagogica,\n",
+        "  CASE\n",
+        "    WHEN\n",
+        "      promedio_nota < 4\n",
+        "      AND pct_asistencia < 50\n",
+        "    THEN\n",
+        "      3\n",
+        "    WHEN\n",
+        "      promedio_nota < 5\n",
+        "      OR pct_asistencia < 50\n",
+        "    THEN\n",
+        "      2\n",
+        "    WHEN riesgo = 'SIN NOTA' THEN 1\n",
+        "    ELSE 0\n",
+        "  END as nivel_severidad,\n",
+        "  CASE\n",
+        "    WHEN\n",
+        "      promedio_nota < 4\n",
+        "      AND pct_asistencia < 50\n",
+        "    THEN\n",
+        "      '🔴🔴🔴 URGENTE'\n",
+        "    WHEN\n",
+        "      promedio_nota < 5\n",
+        "      OR pct_asistencia < 50\n",
+        "    THEN\n",
+        "      '🔴🔴 ALTO'\n",
+        "    WHEN riesgo = 'SIN NOTA' THEN '🟡 MEDIO'\n",
+        "    ELSE '🟢 BAJO'\n",
+        "  END as prioridad\n",
+        "FROM\n",
+        "  main.edu_lakehouse.gold_riesgo_alumnos\n",
+        "WHERE\n",
+        "  riesgo IN ('EN RIESGO', 'SIN NOTA')\n",
+        "ORDER BY\n",
+        "  nivel_severidad DESC,\n",
+        "  promedio_nota ASC"
+      ]
+    },
+    {
+      "name": "riesgo_por_carrera",
+      "displayName": "riesgo_por_carrera",
+      "queryLines": [
+        "SELECT\n",
+        "  carrera,\n",
+        "  COUNT(*) as total_alumnos,\n",
+        "  COUNT(\n",
+        "    CASE\n",
+        "      WHEN riesgo = 'EN RIESGO' THEN 1\n",
+        "    END\n",
+        "  ) as alumnos_riesgo,\n",
+        "  ROUND(\n",
+        "    COUNT(\n",
+        "      CASE\n",
+        "        WHEN riesgo = 'EN RIESGO' THEN 1\n",
+        "      END\n",
+        "    )\n",
+        "      * 100.0\n",
+        "      / COUNT(*),\n",
+        "    1\n",
+        "  ) as pct_riesgo\n",
+        "FROM\n",
+        "  main.edu_lakehouse.gold_riesgo_alumnos\n",
+        "GROUP BY\n",
+        "  carrera\n",
+        "ORDER BY\n",
+        "  pct_riesgo DESC"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "f48d9429",
+      "displayName": "dashboard",
+      "layout": [
+        {
+          "widget": {
+            "name": "header_ejecutivo",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# 🎯 TABLERO EJECUTIVO - ALERTAS ACADÉMICAS TEMPRANAS\n",
+                "\n",
+                "**Última actualización:** 2026-07-20 | **Fuente:** gold_riesgo_alumnos, gold_promedio_materia | **Regla de riesgo:** Promedio <6 O Asistencia <60%"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_total",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "resumen_ejecutivo",
+                  "fields": [
+                    {
+                      "name": "total_alumnos",
+                      "expression": "`total_alumnos`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Total Alumnos",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_alumnos"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_pct_riesgo",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "resumen_ejecutivo",
+                  "fields": [
+                    {
+                      "name": "pct_riesgo",
+                      "expression": "`pct_riesgo`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "% EN RIESGO",
+                "showTitle": true,
+                "description": "Meta institucional: <10%"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "pct_riesgo"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_alumnos_riesgo",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "resumen_ejecutivo",
+                  "fields": [
+                    {
+                      "name": "alumnos_riesgo",
+                      "expression": "`alumnos_riesgo`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Alumnos EN RIESGO",
+                "showTitle": true,
+                "description": "Requieren intervención"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "alumnos_riesgo"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_sin_nota",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "resumen_ejecutivo",
+                  "fields": [
+                    {
+                      "name": "alumnos_sin_nota",
+                      "expression": "`alumnos_sin_nota`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Alumnos SIN NOTA",
+                "showTitle": true,
+                "description": "Evaluación pendiente"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "alumnos_sin_nota"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_promedio",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "resumen_ejecutivo",
+                  "fields": [
+                    {
+                      "name": "promedio_general",
+                      "expression": "`promedio_general`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Promedio General",
+                "showTitle": true,
+                "description": "Meta: ≥7.0"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "promedio_general"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_asistencia",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "resumen_ejecutivo",
+                  "fields": [
+                    {
+                      "name": "asistencia_promedio",
+                      "expression": "`asistencia_promedio`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Asistencia Promedio",
+                "showTitle": true,
+                "description": "Umbral mínimo: 60%"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "asistencia_promedio"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 10,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "header_prioridad",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## 🚨 ALUMNOS DE ALTA PRIORIDAD - Intervención Inmediata\n",
+                "\n",
+                "**5 alumnos requieren contacto urgente del equipo de retención** | Prioridad 1: Ana Ruiz (promedio 3.0 + ausencia total)"
+              ],
+              "verticalAlign": "VERTICAL_ALIGN_TOP"
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "table_priorizados",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "alumnos_priorizados",
+                  "fields": [
+                    {
+                      "name": "prioridad",
+                      "expression": "`prioridad`"
+                    },
+                    {
+                      "name": "nombre",
+                      "expression": "`nombre`"
+                    },
+                    {
+                      "name": "carrera",
+                      "expression": "`carrera`"
+                    },
+                    {
+                      "name": "promedio_nota",
+                      "expression": "`promedio_nota`"
+                    },
+                    {
+                      "name": "pct_asistencia",
+                      "expression": "`pct_asistencia`"
+                    },
+                    {
+                      "name": "accion_pedagogica",
+                      "expression": "`accion_pedagogica`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Alumnos Críticos Ordenados por Severidad",
+                "showTitle": true,
+                "description": "🔴🔴🔴 URGENTE | 🔴🔴 ALTO | 🟡 MEDIO - Contactar en orden de prioridad"
+              },
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "prioridad"
+                  },
+                  {
+                    "fieldName": "nombre"
+                  },
+                  {
+                    "fieldName": "carrera"
+                  },
+                  {
+                    "fieldName": "promedio_nota"
+                  },
+                  {
+                    "fieldName": "pct_asistencia"
+                  },
+                  {
+                    "fieldName": "accion_pedagogica"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "header_analisis",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## 📊 ANÁLISIS COMPARATIVO - Concentración de Riesgo y Rendimiento Académico"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table_riesgo_carrera",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "riesgo_por_carrera",
+                  "fields": [
+                    {
+                      "name": "carrera",
+                      "expression": "`carrera`"
+                    },
+                    {
+                      "name": "total_alumnos",
+                      "expression": "`total_alumnos`"
+                    },
+                    {
+                      "name": "alumnos_riesgo",
+                      "expression": "`alumnos_riesgo`"
+                    },
+                    {
+                      "name": "pct_riesgo",
+                      "expression": "`pct_riesgo`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Ranking de Carreras por Riesgo",
+                "showTitle": true,
+                "description": "Concentración de alumnos en riesgo por carrera - Priorizar intervenciones"
+              },
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "carrera"
+                  },
+                  {
+                    "fieldName": "total_alumnos"
+                  },
+                  {
+                    "fieldName": "alumnos_riesgo"
+                  },
+                  {
+                    "fieldName": "pct_riesgo"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 13,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_materias",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "893de5ff",
+                  "fields": [
+                    {
+                      "name": "avg(promedio_nota)",
+                      "expression": "AVG(`promedio_nota`)"
+                    },
+                    {
+                      "name": "nombre",
+                      "expression": "`nombre`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Rendimiento por Materia",
+                "showTitle": true,
+                "description": "Línea verde: Meta 7.0 | Línea roja: Umbral mínimo 6.0 | Todas las materias superan el umbral"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "avg(promedio_nota)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "nombre",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 13,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "header_confiabilidad",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## ⚠️ CONFIABILIDAD DE DATOS - Estado de Calidad del Dashboard\n",
+                "\n",
+                "**Score actual: 16.7/100 (CRÍTICO)** | 7 de 9 dimensiones de calidad en estado crítico | Considerar estos datos para decisión pero validar casos críticos manualmente"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 21,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_score_calidad",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "calidad_global",
+                  "fields": [
+                    {
+                      "name": "score_calidad",
+                      "expression": "`score_calidad`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Score de Calidad",
+                "showTitle": true,
+                "description": "0-30 CRÍTICO | 30-70 ALERTA | 70-100 ÓPTIMO"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "score_calidad"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 23,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_dimensiones_criticas",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "calidad_global",
+                  "fields": [
+                    {
+                      "name": "total_criticos",
+                      "expression": "`total_criticos`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Dimensiones Críticas",
+                "showTitle": true,
+                "description": "De 9 dimensiones totales evaluadas"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_criticos"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 23,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "table_calidad_resumida",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "d0c5b080",
+                  "fields": [
+                    {
+                      "name": "tabla",
+                      "expression": "`tabla`"
+                    },
+                    {
+                      "name": "dimension",
+                      "expression": "`dimension`"
+                    },
+                    {
+                      "name": "estado",
+                      "expression": "`estado`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Estado de Calidad por Tabla",
+                "showTitle": true,
+                "description": "Ver detalle completo en sección de Auditoría Técnica (siguiente página)"
+              },
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "tabla"
+                  },
+                  {
+                    "fieldName": "dimension"
+                  },
+                  {
+                    "fieldName": "estado"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 23,
+            "width": 6,
+            "height": 8
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "visualizationColors": [
+        "#10B981",
+        "#F59E0B",
+        "#EF4444",
+        "#3B82F6",
+        "#8B5CF6",
+        "#EC4899"
+      ],
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED",
+      "fontSettings": {
+        "base": {
+          "fontFamily": "Inter",
+          "fontSize": 13
+        },
+        "widgetTitle": {
+          "fontFamily": "Inter",
+          "fontSize": 15,
+          "fontWeight": 600
+        }
+      }
+    },
+    "applyModeEnabled": false
+  }
+}
